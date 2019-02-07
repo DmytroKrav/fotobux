@@ -7,8 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: php-app
-#    container_name: app
-    restart: unless-stopped
+    restart: always
     tty: true
     environment:
       SERVICE_NAME: app
@@ -17,14 +16,11 @@ services:
     volumes:
            - ./:/var/www
            - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
-    networks:
-      - app-network
 
   #Nginx Service
   webserver:
     image: nginx:alpine
-#    container_name: webserver
-    restart: unless-stopped
+    restart: always
     tty: true
     ports:
       - "8081:80"
@@ -32,49 +28,32 @@ services:
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d
-    networks:
-      - app-network
 
   #MySQL Service
   db:
     image: mysql:5.7.22
-#    container_name: db
-    restart: unless-stopped
+    restart: always
     tty: true
     ports:
       - "3000:3306"
     environment:
-      MYSQL_DATABASE: laravel
-      MYSQL_USER: root
-      MYSQL_ROOT_PASSWORD: 111111
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
-          - dbdata:/var/lib/mysql
-          - ./mysql/my.cnf:/etc/mysql/my.cnf
+    - /var/lib/mysql
+    - ./mysql/my.cnf:/etc/mysql/my.cnf
     networks:
-      - app-network
+      - default
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-#    container_name: phpmyadmin
     restart: always
     ports:
         - 8091:80
     links:
         - db
     environment:
-        MYSQL_USERNAME: root
-        MYSQL_ROOT_PASSWORD: 1111
-        PMA_HOST: mysql
-
-#Docker Networks
-networks:
-  app-network:
-    driver: bridge
-
-#Volumes
-volumes:
-  dbdata:
-    driver: local
+      PMA_HOST: ${PMA_HOST}
 
